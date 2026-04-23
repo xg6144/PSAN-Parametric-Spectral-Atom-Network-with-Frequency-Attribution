@@ -105,7 +105,7 @@ class PSANConfig:
     anisotropic: bool = True
     learn_phase: bool = True
     amp_init: float = 1.0
-    dropout_bins: float = 0.2
+    atom_dropout: float = 0.2
 
 
 class PSANFilter(nn.Module):
@@ -192,11 +192,11 @@ class PSANFilter(nn.Module):
         else:
             raise ValueError(self.cfg.atom)
 
-    def _bins_dropout(self, psi_re, psi_im):
-        if self.training and self.cfg.dropout_bins > 0:
+    def _atom_dropout(self, psi_re, psi_im):
+        if self.training and self.cfg.atom_dropout > 0:
             M = psi_re.shape[0]
             keep = (torch.rand(M, device=psi_re.device)
-                    > self.cfg.dropout_bins).float()
+                    > self.cfg.atom_dropout).float()
             keep = keep / keep.mean().clamp(min=1e-6)
             psi_re = psi_re * keep.view(M, 1, 1)
             psi_im = psi_im * keep.view(M, 1, 1)
@@ -206,7 +206,7 @@ class PSANFilter(nn.Module):
         """K ∈ C^(D, h, w//2+1)  =  Σ_m  w_{:, m}  ·  ψ_m(:, :)."""
         M, D = self.cfg.M, self.cfg.dim
         psi_re, psi_im = self._atoms_complex()
-        psi_re, psi_im = self._bins_dropout(psi_re, psi_im)
+        psi_re, psi_im = self._atom_dropout(psi_re, psi_im)
 
         # Complex multiply: (w_re + j w_im) · (psi_re + j psi_im)
         K_re = (self.w_real @ psi_re.reshape(M, -1) -
@@ -235,7 +235,7 @@ class PSANFilter(nn.Module):
         X = torch.fft.rfft2(x, dim=(1, 2), norm='ortho')        # (B,H,W',D)
 
         psi_re, psi_im = self._atoms_complex()
-        psi_re, psi_im = self._bins_dropout(psi_re, psi_im)
+        psi_re, psi_im = self._atom_dropout(psi_re, psi_im)
 
         #   K_m[d, u, v] = (w_re + j w_im)[d, m] · (psi_re + j psi_im)[m, u, v]
         W_re = self.w_real.T.view(M, D, 1, 1)                   # (M,D,1,1)
@@ -667,7 +667,7 @@ if __name__ == '__main__':
     print('=' * 60)
     for atom in ('gaussian', 'gabor'):
         cfg = PSANConfig(dim=32, h=14, w=14, M=8, atom=atom,
-                         init='morlet', dropout_bins=0.0)
+                         init='morlet', atom_dropout=0.0)
         f = PSANFilter(cfg)
         x = torch.randn(2, 14, 14, 32)
         y = f(x)
@@ -683,7 +683,7 @@ if __name__ == '__main__':
     model = psan_xs(
         num_classes=11,
         psan_kwargs={'M': 16, 'atom': 'gabor', 'init': 'morlet',
-                     'dropout_bins': 0.0},
+                     'atom_dropout': 0.0},
     )
     x = torch.randn(2, 3, 224, 224)
     y = model(x)
@@ -705,7 +705,7 @@ if __name__ == '__main__':
     model_ti = psan_ti(num_classes=11)
     pc_ti = count_params(model_ti)
     print(f'  total params : {pc_ti["total"]:>12,}')
-    print(f'  dropout_bins : {model_ti.blocks[0].filter.cfg.dropout_bins}')
+    print(f'  atom_dropout : {model_ti.blocks[0].filter.cfg.atom_dropout}')
  
     print()
     print('=' * 60)
