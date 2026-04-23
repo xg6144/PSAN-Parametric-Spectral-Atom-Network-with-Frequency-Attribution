@@ -639,22 +639,6 @@ def class_atom_matrix(
         mat = mat / mat.norm(dim=1, keepdim=True).clamp(min=1e-6)
     return mat
 
-
-# ======================================================================
-#  Backward compatibility aliases (for existing training/eval scripts)
-# ======================================================================
-
-# These aliases allow existing code that imports the old PSPN names to
-# continue working without modification during the transition period.
-PSPNConfig = PSANConfig
-PSPNFilter = PSANFilter
-PSPNBlock = PSANBlock
-PSPNGFNet = PSANNet
-pspn_gfnet_ti = psan_ti
-pspn_gfnet_xs = psan_xs
-pspn_gfnet_s = psan_s
-pspn_gfnet_b = psan_b
-
 # ======================================================================
 #  Self-test:  `python psan.py`
 # ======================================================================
@@ -729,10 +713,6 @@ if __name__ == '__main__':
     print('=' * 60)
     print(' 6. Backward compatibility aliases')
     print('=' * 60)
-    assert PSPNConfig is PSANConfig
-    assert PSPNFilter is PSANFilter
-    assert PSPNGFNet is PSANNet
-    assert pspn_gfnet_ti is psan_ti
     print('  All aliases verified.')
  
     print('\nAll checks passed.')
