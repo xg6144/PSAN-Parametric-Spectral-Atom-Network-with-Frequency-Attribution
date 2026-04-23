@@ -94,7 +94,7 @@ class PSANConfig:
     """Configuration for the PSAN spectral atom filter.
  
     The proposed PSAN-Tiny uses the defaults below (M=16, Gabor atoms,
-    Morlet init, anisotropic envelope, learnable phase, BW=0.2 dropout).
+    Morlet init, anisotropic envelope, learnable phase, AD=0.2 atom dropout).
     """
     dim: int
     h: int
@@ -257,7 +257,7 @@ class PSANFilter(nn.Module):
 
 
 # ======================================================================
-#  PART 2: Backbone (GFNet-XS-style isotropic transformer with PSPN)
+#  PART 2: Backbone (GFNet-XS-style isotropic transformer with PSAN)
 # ======================================================================
 
 class Mlp(nn.Module):
@@ -311,11 +311,11 @@ class PSANBlock(nn.Module):
     """Pre-LN PSAN block: x + PSANFilter(LN(x));  x + MLP(LN(x))."""
     def __init__(self, dim, h, w, mlp_ratio=4., drop=0., drop_path=0.,
                  act_layer=nn.GELU, norm_layer=nn.LayerNorm,
-                 pspn_kwargs: Optional[dict] = None):
+                 psan_kwargs: Optional[dict] = None):
         super().__init__()
         self.norm1 = norm_layer(dim)
-        cfg = PSPNConfig(dim=dim, h=h, w=w, **(pspn_kwargs or {}))
-        self.filter = PSPNFilter(cfg)
+        cfg = PSANConfig(dim=dim, h=h, w=w, **(psan_kwargs or {}))
+        self.filter = PSANFilter(cfg)
         self.norm2 = norm_layer(dim)
         self.mlp = Mlp(dim, int(dim * mlp_ratio), drop=drop, act_layer=act_layer)
         self.drop_path = DropPath(drop_path) if drop_path > 0 else nn.Identity()
@@ -348,7 +348,7 @@ class PSANNet(nn.Module):
                  img_size=224, patch_size=16, in_chans=3, num_classes=11,
                  embed_dim=384, depth=12, mlp_ratio=4.,
                  drop_rate=0., drop_path_rate=0.1,
-                 pspn_kwargs: Optional[dict] = None,
+                 psan_kwargs: Optional[dict] = None,
                  representation_size: Optional[int] = None):
         super().__init__()
         self.num_classes = num_classes
@@ -364,9 +364,9 @@ class PSANNet(nn.Module):
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
         self.blocks = nn.ModuleList([
-            PSPNBlock(dim=embed_dim, h=h, w=w, mlp_ratio=mlp_ratio,
+            PSANBlock(dim=embed_dim, h=h, w=w, mlp_ratio=mlp_ratio,
                       drop=drop_rate, drop_path=dpr[i],
-                      pspn_kwargs=pspn_kwargs)
+                      psan_kwargs=psan_kwargs)
             for i in range(depth)
         ])
         self.norm = nn.LayerNorm(embed_dim)
@@ -700,7 +700,7 @@ if __name__ == '__main__':
  
     print()
     print('=' * 60)
-    print(' 3. PSANNet-Tiny — proposed model (BW=0.2)')
+    print(' 3. PSANNet-Tiny — proposed model (AD=0.2)')
     print('=' * 60)
     model_ti = psan_ti(num_classes=11)
     pc_ti = count_params(model_ti)
