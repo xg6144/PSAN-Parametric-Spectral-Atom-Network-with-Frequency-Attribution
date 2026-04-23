@@ -21,7 +21,7 @@ class TrainConfig(BaseTrainConfig):
     init: str = "morlet"
     isotropic: bool = False
     no_phase: bool = False
-    bins_dropout: float = 0.2
+    atom_dropout: float = 0.2
 
     gfnet_pretrained: str = ""
 
@@ -38,7 +38,7 @@ def build_model(cfg: TrainConfig, device):
         init=cfg.init,
         anisotropic=not cfg.isotropic,
         learn_phase=not cfg.no_phase,
-        dropout_bins=cfg.bins_dropout,
+        dropout_bins=cfg.atom_dropout,
     )
     factory = getattr(M, cfg.model)
     model = factory(
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         init="morlet",
         isotropic=False,
         no_phase=False,
-        bins_dropout=0.2,
+        atom_dropout=0.2,
         gfnet_pretrained="",
     )
     main(cfg)
