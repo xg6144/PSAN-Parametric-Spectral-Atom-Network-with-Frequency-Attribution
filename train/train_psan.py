@@ -23,7 +23,7 @@ class TrainConfig(BaseTrainConfig):
     no_phase: bool = False
     atom_dropout: float = 0.2
 
-    gfnet_pretrained: str = ""
+    psan_pretrained: str = ""
 
 NO_DECAY_KEYWORDS = (
     "norm",
@@ -93,6 +93,6 @@ if __name__ == "__main__":
         isotropic=False,
         no_phase=False,
         atom_dropout=0.2,
-        gfnet_pretrained="",
+        psan_pretrained="",
     )
     main(cfg)
