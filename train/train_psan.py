@@ -38,7 +38,7 @@ def build_model(cfg: TrainConfig, device):
         init=cfg.init,
         anisotropic=not cfg.isotropic,
         learn_phase=not cfg.no_phase,
-        dropout_bins=cfg.atom_dropout,
+        atom_dropout=cfg.atom_dropout,
     )
     factory = getattr(M, cfg.model)
     model = factory(
