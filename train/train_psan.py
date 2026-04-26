@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from dataclasses import dataclass
 from typing import Optional
 import torch
-from models import pspn_gfnet as M
+from models import psan as M
 from train_base import BaseTrainConfig, setup_and_run
 
 @dataclass
